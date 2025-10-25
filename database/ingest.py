@@ -5,6 +5,7 @@ import numpy as np
 from google.genai import types
 import numpy as np
 import re
+import time
 
 # --------- SETTINGS ---------
 PDF_DIR = "pdfs"
@@ -41,6 +42,17 @@ def chunk_text(text, size=1000):
 
     return chunks
 
+def safe_get_embedding(chunk, retries=3):
+    for attempt in range(retries):
+        try:
+            return get_embedding(chunk)
+        except Exception as e:
+            print(f"⚠️ Error: {e}")
+            wait_time = 2 ** attempt  # 1, 2, 4 seconds...
+            print(f"Retrying in {wait_time} seconds...")
+            time.sleep(wait_time)
+    raise RuntimeError("Failed to get embedding after retries")
+
 
 def get_embedding(text):
     # Use the updated Gemini embedding model
@@ -72,13 +84,17 @@ def process_pdfs():
             text = extract_text_from_pdf(path)
             chunks = chunk_text(text)
 
-            for i, chunk in enumerate(chunks):
+            for i, chunk in enumerate(chunks[730:], start=730):
                 embedding = get_embedding(chunk)
                 insert_into_supabase(chunk, embedding, filename)
                 print(f"✅ Inserted chunk {i+1}/{len(chunks)}")
 
+                if (i + 1) % 90 == 0:
+                    print("⏳ Hit 90 embeddings — waiting 60 seconds to avoid rate limit...")
+                    time.sleep(60)
+    
 def search_similar(query):
-    query_embedding = get_embedding(query)
+    query_embedding = safe_get_embedding(query)
 
     embedding_str = str(query_embedding)
 
@@ -93,4 +109,4 @@ def search_similar(query):
 if __name__ == "__main__":
     process_pdfs()
     print("All PDFs processed and stored in Supabase!")
-    
+    #search_similar("Sam, a retail worker, discovers schedules consistently exceed 8 hours/day without overtime pay. Sam needs a clear pathway to document hours, understand entitlements, and pursue a low-friction remedy.")
