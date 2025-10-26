@@ -8,6 +8,7 @@ from services.file_handler import combine_pdfs, text_to_pdf
 import os
 from google.genai import types
 from services.pdf_form_handler_class import PDFFormFiller
+import json
 
 
 app = FastAPI()
@@ -39,6 +40,10 @@ def ask_ai(request: ChatRequest):
     global chat_with_file
     user_message = request.message
     response = None
+
+    if user_message.lower().startswith("yes"):
+        chat_with_file = True
+
     if chat_with_file:
         response = get_form_chat().send_message(user_message)
     else:
@@ -54,13 +59,11 @@ def ask_ai(request: ChatRequest):
     if is_report:
         response_text = response_text.replace("START_REPORT", "").strip()
 
-    if user_message.lower().startswith("yes"):
-        chat_with_file = True
-
-    if response.text.startswith("```json"):
-        filler.fill_form(response.text[7:-3], "filled_form.pdf")
+    if response_text.startswith("```json"):
+        filler.fill_form(json.loads(response_text[7:-3]), "filled_form.pdf")
+        print(response_text[7:-3])
         return {
-            "reply": "i have filled out and sent it back",
+            "reply": "Alright! I have filled out the form to the best of my ability and sent it back to you. Please ensure to review it before submitting, since I am an AI and prone to mistakes. Hope your situation gets better soon! Please let me know if you still have any questions.",
             "is_report": is_report,
         }
 
@@ -130,7 +133,7 @@ async def confirm_report(
     """
     if confirmed:
         return {
-            "reply": "Great! Your report has been confirmed. What would you like to do next?",
+            "reply": "Alright! Please wait a few seconds while I find the most applicable course of action for you...",
             "is_report": False
         }
     else:
@@ -173,10 +176,10 @@ def _process_report(report_text: str):
     text_to_pdf(report_text, "Report.pdf", title="Complaint Report")
     combine_pdfs(uploaded_files)
 
-    msg = f"Based on the report you just generated, which one of these forms that i am giving you now make the most sense to fill out? Is it the BC Employers Standards Act Complaint Form, BC HRT Individual Complaint, CHRC Individual, CIRB Part II Reprisal Complaint Form, CIRB Part III Reprisal Complaint Form, CLC Monetary and Non-Monetary, CLC Trucking Monetary and Non-Monetary, or CLC Unjust Dismissal? You have to choose from one of these. Tell me the name of the form from the ones i just specified, what the form is about, how it relates to my problem, and ask me if I would like it get filled out by you. Don't ask me if you need additional information for now, I will provide that later. If i say something like yes or continue or anything like that, then "
+    msg = f"Based on the report you just generated, which one of these forms that i am giving you now make the most sense to fill out? Is it the BC Employers Standards Act Complaint Form, BC HRT Individual Complaint, CHRC Individual, CIRB Part II Reprisal Complaint Form, CIRB Part III Reprisal Complaint Form, CLC Monetary and Non-Monetary, CLC Trucking Monetary and Non-Monetary, or CLC Unjust Dismissal? You have to choose from one of these. Only choose one. Tell me the name of the form from the ones i just specified, what the form is about, how it relates to my problem, and ask me if I would like it get filled out by you. Don't ask me if you need additional information for now, I will provide that later. If i say something like yes or continue or anything like that, then "
     response = get_chat().send_message([
-        types.Part(text=msg)
-        # *[types.Part(file_data=types.FileData(file_uri=uri)) for uri in uris]  
+        types.Part(text=msg),
+        *[types.Part(file_data=types.FileData(file_uri=uri)) for uri in uris]  
     ])
 
     forms = [
@@ -197,6 +200,6 @@ def _process_report(report_text: str):
     filler = PDFFormFiller(form_tobesaved)
     template = filler.get_form_template()
 
-    create_form_chat_client(report_text, template)
+    create_form_chat_client(report_text, template) 
 
     return response.text

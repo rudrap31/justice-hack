@@ -268,7 +268,7 @@ def create_form_chat_client(report: str, template):
             types.Content(
                 role="user",
                 parts=[
-                    types.Part(text=f"This is the template for the form that I am going to fill out. Go through it. If there are any keys that need more information from me in order to fill them, ask me them one by one. Once everything is finished, take the same template, populate them with the information I gave you. For any booleans that is yes, insert it as /Yes and for no, insert it as /Off Make sure to just return the json, dont attach any other words to it other than the json itself. Make sure to retain the same structure, otherwise my program will break. Then, return the same structure to me with the values populated. Here is the template: {template}")
+                    types.Part(text=f"This is the template for the form that I am going to fill out. Go through it. If there are any keys that need more information from me in order to fill them, ask me them one by one. Once everything is finished, take the same template, populate them with the information I gave you. For any booleans that is yes, insert it as /Yes and for no, insert it as /Off Make sure to just return the json, dont attach any other words to it other than the json itself. FORMAT IT AS A JSON FILE AND RETURN THAT JSON FILE ONLY. Make sure to retain the same structure, otherwise my program will break. Then, return the same structure to me with the values populated. Here is the template: {template}")
                 ],
             ),
         ],
