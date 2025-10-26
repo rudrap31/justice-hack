@@ -107,6 +107,6 @@ def search_similar(query):
     return response.data
 
 if __name__ == "__main__":
-    process_pdfs()
+    #process_pdfs()
     print("All PDFs processed and stored in Supabase!")
     #search_similar("Sam, a retail worker, discovers schedules consistently exceed 8 hours/day without overtime pay. Sam needs a clear pathway to document hours, understand entitlements, and pursue a low-friction remedy.")

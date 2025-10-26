@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Scale, FileText, AlertCircle, Paperclip, X } from 'lucide-react';
 
 export default function App() {
+  const messageIdRef = useRef(1);
   const [messages, setMessages] = useState([
     {
-      id: 1,
+      id: messageIdRef.current++,
       text: "Hello! I'm your B.C. Employment Rights Assistant. I'm here to help you understand your workplace rights under British Columbia law. I'll ask you some questions about your situation to provide accurate guidance. What brings you here today?",
       sender: 'bot',
       timestamp: new Date(),
@@ -13,11 +14,14 @@ export default function App() {
     }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [latestMessage, setLatestMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
+  
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,14 +44,14 @@ export default function App() {
     if (inputValue.trim() === '' && attachedFiles.length === 0) return;
 
     const newMessage = {
-      id: messages.length + 1,
+      id: messageIdRef.current++,
       text: inputValue,
       sender: 'user',
       timestamp: new Date(),
       files: attachedFiles.length > 0 ? attachedFiles.map(f => f.name) : null
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, newMessage]);
     const userInput = inputValue;
     setInputValue('');
     setAttachedFiles([]);
@@ -69,20 +73,22 @@ export default function App() {
       console.log(data)
 
       const botResponse = {
-        id: messages.length + 2,
+        id: messageIdRef.current++,
         text: data.reply,
         sender: 'bot',
         timestamp: new Date(),
         isReport: data.is_report || false,
         confirmed: false
       };
+      setLatestMessage(data.reply);
+      console.log(latestMessage)
 
       setMessages(prev => [...prev, botResponse]);
 
     } catch (error) {
       console.error('Error:', error);
       const errorMessage = {
-        id: messages.length + 2,
+        id: messageIdRef.current++,
         text: "I'm sorry, I'm having trouble connecting. Please try again later.",
         sender: 'bot',
         timestamp: new Date(),
@@ -97,6 +103,11 @@ export default function App() {
 
   const handleConfirmReport = async (messageId, confirmed) => {
     try {
+      // Mark the original message as confirmed
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, confirmed: true } : msg
+      ));
+
       const response = await fetch('http://localhost:8000/confirm-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -105,17 +116,59 @@ export default function App() {
 
       const data = await response.json();
 
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.id === messageId
-            ? { ...msg, text: data.reply, isReport: false, confirmed: true }
-            : msg
-        )
-      );
+      const botResponse = {
+        id: messageIdRef.current++,
+        text: data.reply,
+        sender: 'bot',
+        timestamp: new Date(),
+        isReport: false,
+        confirmed: false
+      };
 
-      // Placeholder for future request logic
+      setMessages(prev => [...prev, botResponse]);
+
       if (confirmed) {
-        // TODO: add API request logic here later
+        try {
+            setLoading(true)
+            const response = await fetch('http://localhost:8000/after-report', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ message: latestMessage })
+            });
+      
+            if (!response.ok) throw new Error('Network response was not ok');
+      
+            const data = await response.json();
+            console.log(data)
+      
+            const botResponse = {
+              id: messageIdRef.current++,
+              text: data.reply,
+              sender: 'bot',
+              timestamp: new Date(),
+              isReport: false,
+              confirmed: false
+            };
+      
+            setMessages(prev => [...prev, botResponse]);
+      
+          } catch (error) {
+            console.error('Error:', error);
+            const errorMessage = {
+              id: messageIdRef.current++,
+              text: "I'm sorry, I'm having trouble connecting. Please try again later.",
+              sender: 'bot',
+              timestamp: new Date(),
+              isReport: false,
+              confirmed: false
+            };
+            setMessages(prev => [...prev, errorMessage]);
+          } finally {
+            setIsTyping(false);
+            setLoading(false);
+          }
       }
 
     } catch (err) {
