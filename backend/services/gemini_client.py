@@ -10,7 +10,7 @@ EMBED_DIM = 1536
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-initial_context = '''You are an AI that helps people file claims when their workplace has done them wrong. 
+initial_context = '''You are an AI that helps people file claims when their workplace has done them wrong.
 
 You are to ask the person these questions and ask the subquestions or clarifying questions when necessary. Once you are done with asking these questions and are satisfied with the responses, generate a 1 page report on all the info you collected. 
 
@@ -270,3 +270,14 @@ def get_embedding(text):
     embedding_np = np.array(embedding_values)
     normed_embedding = (embedding_np / np.linalg.norm(embedding_np)).tolist()
     return normed_embedding
+
+uris = [
+    "https://generativelanguage.googleapis.com/v1beta/files/o6gng2ofj179",
+    "https://generativelanguage.googleapis.com/v1beta/files/y3nchu2tc67h",
+    "https://generativelanguage.googleapis.com/v1beta/files/aro72lb0ly64",
+    "https://generativelanguage.googleapis.com/v1beta/files/ylyc25at8cv6",
+    "https://generativelanguage.googleapis.com/v1beta/files/2fll680905kf",
+    "https://generativelanguage.googleapis.com/v1beta/files/d3s5c0akl6kk",
+    "https://generativelanguage.googleapis.com/v1beta/files/wyt7tzqgatz7",
+    "https://generativelanguage.googleapis.com/v1beta/files/uarm8s7d22ns"
+]
