@@ -1,8 +1,8 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
-from backend.model.request_models import ChatRequest
-from services.gemini_client import get_chat, process_file
+from model.request_models import ChatRequest
+from services.gemini_client import get_chat
 from services.supabase_client import search_similar
 from services.file_handler import combine_pdfs
 import os
