@@ -4,6 +4,7 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Image
 from PyPDF2 import PdfReader, PdfWriter
 from PIL import Image
+from textwrap import wrap
 
 i = 1
 
@@ -54,3 +55,38 @@ def combine_pdfs(file_list):
         pdf_writer.write(out_file)
 
     print(f"Combined PDF with title pages saved to {"files.pdf"}")
+
+def text_to_pdf(text, output_path="text_output.pdf", title=None):
+    """Convert plain text into a nicely formatted PDF."""
+    c = canvas.Canvas(output_path, pagesize=letter)
+    width, height = letter
+    margin = 50
+    line_height = 14
+    y = height - margin
+
+    # Optional title at the top
+    if title:
+        c.setFont("Helvetica-Bold", 18)
+        c.drawCentredString(width / 2, y, title)
+        y -= 30
+
+    c.setFont("Helvetica", 12)
+
+    # Wrap text to fit within page width
+    max_chars_per_line = 90
+    wrapped_text = []
+    for line in text.splitlines():
+        wrapped_text.extend(wrap(line, max_chars_per_line))
+        wrapped_text.append("")  # Blank line between paragraphs
+
+    for line in wrapped_text:
+        if y < margin:  # Start a new page if space runs out
+            c.showPage()
+            c.setFont("Helvetica", 12)
+            y = height - margin
+        c.drawString(margin, y, line)
+        y -= line_height
+
+    c.save()
+    print(f"Text PDF saved to {output_path}")
+    return output_path
