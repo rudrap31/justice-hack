@@ -1,23 +1,28 @@
-# AGENTS.md
+# AGENTS.md - Justice Hack Project Guidelines
 
-## Commands
-- **Build**: `pip install -e .`
-- **Lint**: `flake8 . && black --check .`
-- **Format**: `black .`
-- **Test**: `pytest`
-- **Single test**: `pytest tests/test_file.py::test_function_name -v`
-- **Type check**: `mypy .`
+## Build/Lint/Test Commands
+- **Backend (Python/FastAPI)**: `uvicorn main:app --reload` (dev), `python main.py` (run)
+- **Frontend (React/Vite)**: `npm run dev` (dev), `npm run build` (build), `npm run lint` (lint), `npm run preview` (preview)
+- **Single test**: No formal testing framework configured - use `python sample_testing.py` for manual testing
 
-## Code Style
-- **Imports**: Use absolute imports, group stdlib, third-party, local imports with blank lines
-- **Formatting**: Black with 88 char line length
-- **Types**: Use type hints for all function parameters and return values
-- **Naming**: snake_case for functions/variables, PascalCase for classes, UPPER_CASE for constants
-- **Error handling**: Use specific exceptions, avoid bare except clauses
-- **Docstrings**: Google style docstrings for all public functions/classes
-- **Line length**: 88 characters max (Black default)
+## Code Style Guidelines
 
-## Project Structure
-- `main.py`: Entry point
-- `requirements.txt`: Dependencies
-- `tests/`: Test files (create if needed)
+### Python (Backend)
+- **Imports**: Standard library → third-party → local modules
+- **Naming**: snake_case for variables/functions, PascalCase for classes
+- **Types**: Use Pydantic BaseModel for request/response models
+- **Error handling**: Let FastAPI handle HTTP errors, use try/catch for external API calls
+- **Environment**: Load .env with `load_dotenv()` at module start
+- **Constants**: UPPER_SNAKE_CASE for module-level constants
+
+### JavaScript/React (Frontend)
+- **Imports**: ES6 modules, group by external → internal
+- **Naming**: camelCase for variables/functions, PascalCase for components
+- **Styling**: Tailwind CSS classes, no custom CSS unless necessary
+- **Linting**: ESLint with React hooks and refresh plugins
+- **File structure**: Flat structure in src/, components in same directory
+
+### General
+- **Comments**: Minimal, only when code intent isn't clear
+- **Security**: Never log or commit API keys/secrets
+- **Dependencies**: Check existing usage before adding new libraries
