@@ -6,7 +6,7 @@ export default function App() {
   const [messages, setMessages] = useState([
     {
       id: messageIdRef.current++,
-      text: "Hello! I'm your B.C. Employment Rights Assistant. I'm here to help you understand your workplace rights under British Columbia law. I'll ask you some questions about your situation to provide accurate guidance. What brings you here today?",
+      text: "Hello! I'm Fiona the Form Filler. I'm here to help you understand your workplace rights under British Columbia law. I'll ask you some questions about your situation to provide accurate guidance. What brings you here today?",
       sender: 'bot',
       timestamp: new Date(),
       isReport: false,
@@ -107,6 +107,16 @@ export default function App() {
 
       const data = await response.json();
       console.log(data)
+      let pdfUrls
+      if (data.pdfs) {
+        pdfUrls = data.pdfs.map(pdf => {
+            const blob = new Blob(
+            [Uint8Array.from(atob(pdf.pdf_base64), c => c.charCodeAt(0))],
+            { type: "application/pdf" }
+            );
+            return { url: URL.createObjectURL(blob), filename: pdf.filename };
+        });
+      }
 
       const botResponse = {
         id: messageIdRef.current++,
@@ -114,7 +124,8 @@ export default function App() {
         sender: 'bot',
         timestamp: new Date(),
         isReport: data.is_report || false,
-        confirmed: false
+        confirmed: false,
+        pdfUrls,
       };
       setLatestMessage(data.reply);
       console.log(latestMessage)
@@ -241,7 +252,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-purple-700 to-blue-700 bg-clip-text text-transparent">
-                B.C. Workers Rights Assistant
+                Fiona the Form Filler
               </h1>
               <p className="text-sm text-slate-500">Powered by Employment Standards Act</p>
             </div>
@@ -278,6 +289,25 @@ export default function App() {
                     )}
 
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
+                    {message.pdfUrls?.map((pdf, i) => (
+                    <div key={i} className="mt-3">
+                        <iframe
+                        src={pdf.url}
+                        width="100%"
+                        height="400px"
+                        title={`PDF-${i}`}
+                        className="rounded-lg border border-gray-200"
+                        ></iframe>
+                        <a
+                        href={pdf.url}
+                        download={pdf.filename}
+                        className="text-purple-600 text-sm underline mt-1 inline-block"
+                        >
+                        Download {pdf.filename}
+                        </a>
+                    </div>
+                    ))}
+
 
                     {message.files && message.files.length > 0 && (
                       <div className="mt-3 space-y-1">
