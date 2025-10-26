@@ -43,16 +43,52 @@ export default function App() {
   const handleSend = async () => {
     if (inputValue.trim() === '' && attachedFiles.length === 0) return;
 
+    // Upload files if any are attached
+    if (attachedFiles.length > 0) {
+      try {
+        const formData = new FormData();
+        attachedFiles.forEach(file => {
+          formData.append('file', file);
+        });
+
+        const uploadResponse = await fetch('http://localhost:8000/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!uploadResponse.ok) throw new Error('File upload failed');
+      } catch (error) {
+        console.error('Error uploading files:', error);
+        const errorMessage = {
+          id: messageIdRef.current++,
+          text: "I'm sorry, I couldn't upload your files. Please try again.",
+          sender: 'bot',
+          timestamp: new Date(),
+          isReport: false,
+          confirmed: false
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+    }
+
+    // Create message text with file information
+    let messageText = inputValue;
+    if (attachedFiles.length > 0) {
+      const fileList = attachedFiles.map(f => f.name).join(', ');
+      messageText = messageText ? `${messageText}\n\nUser added ${fileList}` : `User added ${fileList}`;
+    }
+
     const newMessage = {
       id: messageIdRef.current++,
-      text: inputValue,
+      text: messageText,
       sender: 'user',
       timestamp: new Date(),
       files: attachedFiles.length > 0 ? attachedFiles.map(f => f.name) : null
     };
 
     setMessages(prev => [...prev, newMessage]);
-    const userInput = inputValue;
+    const userInput = messageText;
     setInputValue('');
     setAttachedFiles([]);
 
