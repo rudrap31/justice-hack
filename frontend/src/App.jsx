@@ -289,24 +289,32 @@ export default function App() {
                     )}
 
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
-                    {message.pdfUrls?.map((pdf, i) => (
-                    <div key={i} className="mt-3">
-                        <iframe
-                        src={pdf.url}
-                        width="100%"
-                        height="400px"
-                        title={`PDF-${i}`}
-                        className="rounded-lg border border-gray-200"
-                        ></iframe>
-                        <a
-                        href={pdf.url}
-                        download={pdf.filename}
-                        className="text-purple-600 text-sm underline mt-1 inline-block"
+                    {message.pdfUrls?.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-4">
+                        {message.pdfUrls.map((pdf, i) => (
+                        <div
+                            key={i}
+                            className="w-72 flex flex-col items-center bg-white/20 rounded-xl p-3 border border-gray-200 shadow-sm"
                         >
-                        Download {pdf.filename}
-                        </a>
+                            <iframe
+                            src={pdf.url}
+                            width="100%"
+                            height="300px"
+                            title={`PDF-${i}`}
+                            className="rounded-lg border border-gray-300"
+                            ></iframe>
+                            <a
+                            href={pdf.url}
+                            download={pdf.filename}
+                            className="text-purple-600 text-sm underline mt-2"
+                            >
+                            Download {pdf.filename}
+                            </a>
+                        </div>
+                        ))}
                     </div>
-                    ))}
+                    )}
+
 
 
                     {message.files && message.files.length > 0 && (
