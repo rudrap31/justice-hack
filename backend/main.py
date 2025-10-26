@@ -19,7 +19,7 @@ app.add_middleware(
 def hello_world():
     return {"message": "Hello, world!"}
 
-@app.post("/chat")  # Changed from GET to POST
+@app.post("/chat")
 def ask_ai(request: ChatRequest):
     user_message = request.message
     response = get_chat().send_message(user_message)
