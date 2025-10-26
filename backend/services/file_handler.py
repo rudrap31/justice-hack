@@ -5,6 +5,8 @@ from reportlab.platypus import Image
 from PyPDF2 import PdfReader, PdfWriter
 from PIL import Image
 
+i = 1
+
 def create_title_page(title, path="temp_title.pdf"):
     """Create a PDF page with the title centered."""
     c = canvas.Canvas(path, pagesize=letter)
@@ -16,12 +18,14 @@ def create_title_page(title, path="temp_title.pdf"):
     return path
 
 def combine_pdfs(file_list):
+    global i
     pdf_writer = PdfWriter()
 
     for file in file_list:
         ext = file.lower().split('.')[-1]
         # Remove the file extension for the title
-        title = os.path.splitext(os.path.basename(file))[0]
+        title = 'Exhibit {}'.format(i) + ": " + os.path.splitext(os.path.basename(file))[0]
+        i += 1
 
         # 1. Add title page
         title_pdf_path = create_title_page(title)
